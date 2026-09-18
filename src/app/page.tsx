@@ -28,8 +28,12 @@ export default function HomePage() {
         </section>
 
         <section className="mt-6 space-y-3">
-          <p className="text-base leading-relaxed text-zinc-300">{artist.bio}</p>
-          <p className="text-sm leading-relaxed text-zinc-400">{artist.about}</p>
+          <p className="text-base leading-relaxed text-zinc-300">
+            {artist.bio}
+          </p>
+          <p className="text-sm leading-relaxed text-zinc-400">
+            {artist.about}
+          </p>
         </section>
 
         <section className="mt-8">
