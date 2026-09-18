@@ -8,10 +8,10 @@ Stack: Next.js App Router · TypeScript · Tailwind. No paywall, no auth, no cus
 
 | Route | Role |
 |---|---|
-| `/` | Avatar + name → Social bio → CTA live → sticky player → list **only `status=live`** → CTA UGC |
+| `/` | Avatar + name → Social bio → CTA live → hero YT embed → list **only `status=live`** → compact sticky player → CTA UGC |
 | `/live` | Full-bleed stream from `NEXT_PUBLIC_LIVE_STREAM_URL` (HLS or direct video). Empty → offline PL placeholder. No catalog. |
 | `/tracks` | UGC upload (title + audio). Starts as `pending` (not on public list). |
-| `/track/[id]` | Track detail from Hits fixture |
+| `/track/[id]` | Track detail — full YT iframe or direct audio |
 
 ## Live URL
 
@@ -24,13 +24,15 @@ NEXT_PUBLIC_LIVE_STREAM_URL=https://your-cdn.example/stream.m3u8
 
 Empty string → clear offline placeholder (PL). Supports laptop/OBS via that URL.
 
-## Hits UGC v1
+## Hits UGC v2
 
 Canonical fixture: `data/tracks.fixture.json`
 
 - Statuses: `pending` | `live` | `coming_soon`
-- Seeds **Wilcza krew**, **Maska spada** = `coming_soon` only (not fake live releases)
-- UGC uploads default to `pending`; public home list shows **only** `live`
+- Official shortlist: **14 live** YouTube watch URLs (`@CzarneWilkiPrawdy`) + **2 coming_soon** seeds (Wilcza krew, Maska spada) + **1 pending** UGC example
+- Seeds stay `coming_soon` only (not fake live releases)
+- Public home list shows **only** `live`
+- Player embeds YouTube watch URLs; sticky bar stays compact (cover/title/play) — full 16:9 iframe only in home hero or `/track/[id]`
 
 ## UGC upload (MVP)
 

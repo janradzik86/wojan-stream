@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTrackById } from "@/lib/catalog";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { isYouTubeUrl } from "@/lib/youtube";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -12,8 +13,9 @@ export default async function TrackPage({ params }: Props) {
   const track = getTrackById(decodeURIComponent(id));
   if (!track) notFound();
 
-  const canPlay =
-    track.status === "live" && Boolean(track.audio_url);
+  const canPlay = track.status === "live" && Boolean(track.audio_url);
+  const yt =
+    canPlay && track.audio_url ? isYouTubeUrl(track.audio_url) : false;
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 sm:max-w-2xl sm:py-8">
@@ -52,16 +54,20 @@ export default async function TrackPage({ params }: Props) {
         )}
       </div>
 
-      {track.video_url && track.status === "live" && (
-        <div className="mt-4 overflow-hidden rounded-xl border border-zinc-800">
-          <video
-            className="aspect-video w-full bg-black"
-            controls
-            src={track.video_url}
-            playsInline
-          />
-        </div>
-      )}
+      {/* Non-YouTube video_url only — YT already shown via AudioPlayer embed */}
+      {track.video_url &&
+        track.status === "live" &&
+        !isYouTubeUrl(track.video_url) &&
+        !yt && (
+          <div className="mt-4 overflow-hidden rounded-xl border border-zinc-800">
+            <video
+              className="aspect-video w-full bg-black"
+              controls
+              src={track.video_url}
+              playsInline
+            />
+          </div>
+        )}
 
       <p className="mt-10 text-center text-sm">
         <Link
