@@ -1,5 +1,6 @@
 "use client";
 
+import { getYouTubeEmbedUrl, isHlsUrl } from "@/lib/live";
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 
@@ -11,9 +12,11 @@ type Props = {
 export function LivePlayer({ url, fullBleed }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const isHls = /\.m3u8(\?|$)/i.test(url);
+  const ytEmbed = getYouTubeEmbedUrl(url);
+  const isHls = !ytEmbed && isHlsUrl(url);
 
   useEffect(() => {
+    if (ytEmbed) return;
     setError(null);
     const video = videoRef.current;
     if (!video || !url) return;
@@ -40,7 +43,32 @@ export function LivePlayer({ url, fullBleed }: Props) {
     return () => {
       hls?.destroy();
     };
-  }, [url, isHls]);
+  }, [url, isHls, ytEmbed]);
+
+  if (ytEmbed) {
+    return (
+      <div
+        className={
+          fullBleed
+            ? "flex h-full w-full flex-col bg-black"
+            : "overflow-hidden rounded-xl border border-amber-900/50 bg-black shadow-lg shadow-amber-950/40"
+        }
+      >
+        <iframe
+          className={
+            fullBleed
+              ? "h-full w-full flex-1 border-0 bg-black"
+              : "aspect-video w-full border-0 bg-black"
+          }
+          src={`${ytEmbed}?autoplay=1&playsinline=1&rel=0&modestbranding=1`}
+          title="Wojan live"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -93,7 +121,7 @@ export function LiveOfflinePlaceholder() {
           <code className="rounded bg-zinc-800 px-1 text-amber-300/90">
             NEXT_PUBLIC_LIVE_STREAM_URL
           </code>{" "}
-          (HLS .m3u8 lub bezpośredni link do wideo z OBS / laptopa) i wróć tu.
+          (YouTube Live / embed, HLS .m3u8 lub bezpośredni link z OBS) i wróć tu.
         </p>
         <p className="mt-3 text-sm text-zinc-500">
           Wracaj na live — kiedy świat się pali, wilki wychodzą.
