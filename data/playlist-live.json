@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "updated_at": "2026-09-18T22:07:13+02:00",
+  "on_air": true,
+  "live_url": "https://wojan-stream.vercel.app/live",
+  "youtube_live_id": "wsNaZ67Rito",
+  "youtube_watch_url": "https://www.youtube.com/watch?v=wsNaZ67Rito",
+  "paid_promo": false,
+  "home": {
+    "pin_live_cta": true,
+    "cta_label_on": "Live teraz. Wejdź.",
+    "cta_label_off": "Włącz stream — gramy na żywo.",
+    "featured_track_id": "trk_yt_01_czarne_wilki_prawdy_x_wszyscy_won"
+  },
+  "playlists": [
+    {
+      "id": "pl_live_now",
+      "title": "Live teraz",
+      "kind": "live_session",
+      "href": "/live",
+      "youtube_live_id": "wsNaZ67Rito",
+      "featured": true,
+      "sort_order": 0,
+      "track_ids": []
+    },
+    {
+      "id": "pl_wilki_v1",
+      "title": "Czarne Wilki — Hits v2",
+      "kind": "catalog",
+      "featured": true,
+      "sort_order": 1,
+      "track_ids": [
+        "trk_yt_01_czarne_wilki_prawdy_x_wszyscy_won",
+        "trk_yt_02_karma_zawsze_wraca",
+        "trk_yt_03_czarne_wielkie_prawdy",
+        "trk_yt_04_przebudzenie",
+        "trk_yt_05_dekalog_czarnego_wilka_prawda",
+        "trk_yt_06_kodeks_wilka",
+        "trk_yt_07_pos_uchaj_s_siedzie",
+        "trk_yt_08_unio_unio_wariatunio",
+        "trk_yt_09_zatrzymaj_ten_czas",
+        "trk_yt_10_twarde_jaja_2026r",
+        "trk_yt_11_jad_wiry_jad",
+        "trk_yt_12_ty_nawet_nie_wiesz_jak_ja_kocham_ciebie",
+        "trk_yt_13_oj_dana_dana_taka_beka_z_rana",
+        "trk_yt_14_sto_lat_siostra"
+      ]
+    }
+  ]
+}
