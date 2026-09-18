@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "note": "Artist profile only. Track seeds live in data/tracks.fixture.json (Hits UGC v1). No fake releases here.",
+  "artist": {
+    "name": "Wojan",
+    "project": "Czarne Wilki Prawdy",
+    "bio": "Wojan / Czarne Wilki Prawdy — muzyka z ognia i ziemi. Folk, bunt, prawda bez filtrów.",
+    "about": "Czarne Wilki Prawdy to projekt Jana — Wojana. Utwory rosną z folkowych korzeni i współczesnego hałasu: skrzypce przy beczce z ogniem, głos na mikrofony, flaga w tłumie. Nie gramy pod algorytm. Gramy, kiedy świat się pali, a elity schodzą do bunkrów. Tu nie ma smooth marketingu — jest żywioł, pamięć i ostry przekaz. Słuchaj, wracaj na live, dawaj dalej.",
+    "avatar_emoji": "🐺"
+  }
+}
