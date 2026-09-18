@@ -6,6 +6,7 @@ import { getLiveStreamUrl } from "@/lib/live";
 import { isYouTubeUrl } from "@/lib/youtube";
 
 export default function HomePage() {
+  // SSR: Hits v2 from data/tracks.fixture.json — same source client falls back to
   const liveTracks = getLiveTracks();
   const featured = liveTracks[0] ?? null;
   const streamOn = Boolean(getLiveStreamUrl());
@@ -14,7 +15,7 @@ export default function HomePage() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-40 pt-6 sm:max-w-5xl sm:pb-44 sm:pt-8">
+    <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-8 pt-6 sm:max-w-5xl sm:pb-10 sm:pt-8">
       {/* Avatar + name */}
       <section className="flex flex-col items-center text-center sm:items-start sm:text-left">
         <div
@@ -58,26 +59,13 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* List ONLY status=live; sticky appears only after play */}
-      <section className="mt-10 space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-          Hits · na żywo
-        </h2>
+      {/* List ONLY status=live from SSR fixture; sticky + CTA pad only after play */}
+      <div className="mt-10">
         <HomeHits
           tracks={liveTracks}
           emptyText="Brak tracków ze statusem live. Seed (Wilcza krew, Maska spada) to coming_soon — nie fake releases. Pending UGC nie jest na liście."
         />
-      </section>
-
-      {/* CTA UGC — no sticky overlap on load / scroll-to-top */}
-      <section className="mt-8 mb-4">
-        <Link
-          href="/tracks"
-          className="flex w-full items-center justify-center rounded-xl border-2 border-amber-700/70 px-5 py-3.5 text-center text-sm font-extrabold uppercase tracking-wide text-amber-400 hover:bg-amber-950/40"
-        >
-          Wrzuć swój track
-        </Link>
-      </section>
+      </div>
     </main>
   );
 }
