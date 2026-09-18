@@ -1,3 +1,5 @@
+import catalogJson from "../../data/catalog.json";
+
 export function getLiveStreamUrl(): string {
   return (process.env.NEXT_PUBLIC_LIVE_STREAM_URL ?? "").trim();
 }
@@ -15,7 +17,11 @@ export function getYouTubeEmbedUrl(url: string): string | null {
       const id = u.pathname.split("/").filter(Boolean)[0];
       return id ? `https://www.youtube.com/embed/${id}` : null;
     }
-    if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+    if (
+      host === "youtube.com" ||
+      host === "m.youtube.com" ||
+      host === "youtube-nocookie.com"
+    ) {
       if (u.pathname.startsWith("/embed/")) {
         return `https://www.youtube.com${u.pathname}`;
       }
@@ -32,4 +38,34 @@ export function getYouTubeEmbedUrl(url: string): string | null {
 
 export function isYouTubeUrl(url: string): boolean {
   return getYouTubeEmbedUrl(url) !== null;
+}
+
+/** Offline Social tagline (wilki) — user-facing only, no stream-tech jargon */
+export const LIVE_OFFLINE_TAGLINE =
+  "Wracaj na live — kiedy świat się pali, wilki wychodzą.";
+
+export type LiveCtaLabels = {
+  labelOn: string;
+  labelOff: string;
+  href: string;
+  offlineTagline: string;
+};
+
+/**
+ * Live CTA copy from catalog.json featured.live —
+ * single source for home and /live primary CTA (Social voice).
+ */
+export function getLiveCtaLabels(): LiveCtaLabels {
+  const live = catalogJson.featured.live;
+  return {
+    labelOn: live.label_on,
+    labelOff: live.label_off,
+    href: live.href,
+    offlineTagline: LIVE_OFFLINE_TAGLINE,
+  };
+}
+
+export function getLiveCtaLabel(streamOn: boolean): string {
+  const { labelOn, labelOff } = getLiveCtaLabels();
+  return streamOn ? labelOn : labelOff;
 }

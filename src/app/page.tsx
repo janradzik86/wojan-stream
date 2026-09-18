@@ -2,7 +2,7 @@ import Link from "next/link";
 import { artist, getLiveTracks } from "@/lib/catalog";
 import { HomeHits } from "@/components/HomeHits";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
-import { getLiveStreamUrl } from "@/lib/live";
+import { getLiveCtaLabel, getLiveStreamUrl } from "@/lib/live";
 import { isYouTubeUrl } from "@/lib/youtube";
 
 export default function HomePage() {
@@ -44,7 +44,7 @@ export default function HomePage() {
           href="/live"
           className="flex w-full items-center justify-center rounded-xl bg-amber-600 px-5 py-3.5 text-center text-sm font-extrabold uppercase tracking-wide text-zinc-950 hover:bg-amber-500"
         >
-          {streamOn ? "Live teraz. Wejdź." : "Włącz stream — gramy na żywo."}
+          {getLiveCtaLabel(true)}
         </Link>
       </section>
 

@@ -1,6 +1,10 @@
 "use client";
 
-import { getYouTubeEmbedUrl, isHlsUrl } from "@/lib/live";
+import {
+  getLiveCtaLabels,
+  getYouTubeEmbedUrl,
+  isHlsUrl,
+} from "@/lib/live";
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 
@@ -107,6 +111,8 @@ export function LivePlayer({ url, fullBleed }: Props) {
 }
 
 export function LiveOfflinePlaceholder() {
+  const { labelOff, offlineTagline } = getLiveCtaLabels();
+
   return (
     <div className="flex w-full max-w-md flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-amber-900/60 bg-zinc-900/80 px-6 py-12 text-center">
       <span className="text-5xl" aria-hidden>
@@ -114,18 +120,10 @@ export function LiveOfflinePlaceholder() {
       </span>
       <div>
         <h2 className="text-lg font-extrabold uppercase tracking-tight text-amber-400">
-          Stream offline
+          Live teraz
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-          Aktualnie nic nie gramy na żywo. Ustaw{" "}
-          <code className="rounded bg-zinc-800 px-1 text-amber-300/90">
-            NEXT_PUBLIC_LIVE_STREAM_URL
-          </code>{" "}
-          (YouTube Live / embed, HLS .m3u8 lub bezpośredni link z OBS) i wróć tu.
-        </p>
-        <p className="mt-3 text-sm text-zinc-500">
-          Wracaj na live — kiedy świat się pali, wilki wychodzą.
-        </p>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-300">{labelOff}</p>
+        <p className="mt-3 text-sm text-zinc-500">{offlineTagline}</p>
       </div>
     </div>
   );
