@@ -9,24 +9,24 @@ Stack: Next.js App Router · TypeScript · Tailwind. No paywall, no auth, no cus
 | Route | Role |
 |---|---|
 | `/` | Avatar + name → Social bio → CTA live → hero YT embed → list **only `status=live`** → compact sticky player → CTA UGC |
-| `/live` | Full-bleed stream from `NEXT_PUBLIC_LIVE_STREAM_URL` (HLS or direct video). Empty → offline PL placeholder. No catalog. |
+| `/live` | Full-bleed stream from `NEXT_PUBLIC_LIVE_STREAM_URL` (YouTube Live / embed, HLS, or direct video). Empty → offline PL placeholder. No catalog. |
 | `/tracks` | UGC upload (title + audio). Starts as `pending` (not on public list). |
 | `/track/[id]` | Track detail — full YT iframe or direct audio |
 
 ## Live URL
 
-Set env:
+Set env (or default in `next.config.ts` for active live):
 
 ```bash
-NEXT_PUBLIC_LIVE_STREAM_URL=https://your-cdn.example/stream.m3u8
-# or direct: https://….mp4 / OBS restream URL
+NEXT_PUBLIC_LIVE_STREAM_URL=https://www.youtube.com/embed/wsNaZ67Rito
+# also: HLS .m3u8 / direct mp4 / OBS restream
 ```
 
-Empty string → clear offline placeholder (PL). Supports laptop/OBS via that URL.
+Empty string → clear offline placeholder (PL). Supports laptop/OBS via that URL. YouTube Live/watch/embed supported in `LivePlayer`.
 
 ## Hits UGC v2
 
-Canonical fixture: `data/tracks.fixture.json`
+Canonical fixture: `data/tracks.fixture.json` (+ `data/catalog.json`, `data/playlist-live.json` for live pin)
 
 - Statuses: `pending` | `live` | `coming_soon`
 - Official shortlist: **14 live** YouTube watch URLs (`@CzarneWilkiPrawdy`) + **2 coming_soon** seeds (Wilcza krew, Maska spada) + **1 pending** UGC example
@@ -53,4 +53,5 @@ npm run build
 
 - Import `janradzik86/wojan-stream`
 - Set `NEXT_PUBLIC_LIVE_STREAM_URL` if streaming
+- Preview: https://wojan-stream.vercel.app
 - No auth / paywall / custom domain required for MVP
