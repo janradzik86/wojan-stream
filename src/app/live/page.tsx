@@ -1,4 +1,5 @@
 import { LiveOfflinePlaceholder, LivePlayer } from "@/components/LivePlayer";
+import { PageMark } from "@/components/PageMark";
 import { getLiveStreamUrl } from "@/lib/live";
 import Link from "next/link";
 
@@ -6,7 +7,8 @@ export default function LivePage() {
   const url = getLiveStreamUrl();
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.25rem)] flex-col bg-black">
+    <div className="flex min-h-[calc(100dvh-3.25rem)] flex-col">
+      <PageMark page="live" />
       <header className="space-y-3 border-b border-amber-900/40 px-3 py-4 sm:px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -40,7 +42,10 @@ export default function LivePage() {
         </div>
       </header>
 
-      <div id="stream" className="relative flex-1 scroll-mt-4 bg-black">
+      <div
+        id="stream"
+        className="live-stream-glow relative flex-1 scroll-mt-4 bg-black"
+      >
         {url ? (
           <div className="absolute inset-0 min-h-[50dvh] [&_iframe]:h-full [&_iframe]:w-full [&_video]:h-full [&_video]:w-full [&_video]:object-contain">
             <LivePlayer url={url} fullBleed />
