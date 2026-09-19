@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./bg-cover.css";
+@import "./bg-wolf.css";
 
 :root {
   --background: #09090b;
@@ -41,36 +43,36 @@ body {
 .site-bg__cover {
   position: absolute;
   inset: 0;
-  background-image: url("/bg-wojan-cover.webp");
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
-  opacity: 0.1;
-  filter: blur(3px) saturate(0.55) brightness(0.55);
+  opacity: 0.14;
+  filter: blur(2px) saturate(0.55) brightness(0.55);
   transform: scale(1.04);
 }
 
 .site-bg__wolf {
   position: absolute;
   inset: 0;
-  background-image: url("/czarne-wilki-logotyp-bg.webp");
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 92%);
   background-size: min(90vw, 36rem) auto;
   background-position: center 18%;
   background-repeat: no-repeat;
-  opacity: 0.13;
-  filter: blur(1.5px) saturate(0.7) brightness(0.65);
+  opacity: 0.24;
+  filter: blur(0.5px) saturate(0.85) brightness(0.7) contrast(1.08);
   transform: scale(1.02);
 }
 
 body[data-page="live"] .site-bg__wolf {
-  opacity: 0.09;
+  opacity: 0.18;
   background-position: center 8%;
   background-size: min(70vw, 28rem) auto;
-  filter: blur(2px) saturate(0.55) brightness(0.55);
+  filter: blur(0.5px) saturate(0.7) brightness(0.6) contrast(1.08);
 }
 
 body[data-page="live"] .site-bg__cover {
-  opacity: 0.08;
+  opacity: 0.1;
 }
 
 .site-bg__overlay {
@@ -149,7 +151,7 @@ body[data-page="live"] .site-bg__cover {
 @media (prefers-reduced-motion: reduce) {
   .site-bg__cover,
   .site-bg__wolf {
-    filter: saturate(0.55) brightness(0.55);
+    filter: saturate(0.55) brightness(0.55) contrast(1);
     transform: none;
   }
 }
