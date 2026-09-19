@@ -36,7 +36,14 @@ export default function RootLayout({
       lang="pl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-zinc-950 text-zinc-100">
+      <body className="relative flex min-h-full flex-col bg-transparent text-zinc-100">
+        <div className="site-bg" aria-hidden="true">
+          <div className="site-bg__base" />
+          <div className="site-bg__cover" />
+          <div className="site-bg__wolf" />
+          <div className="site-bg__overlay" />
+          <div className="site-bg__grain" />
+        </div>
         <CatalogBoot />
         <Nav />
         {children}
