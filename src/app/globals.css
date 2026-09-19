@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "./bg-cover.css";
-@import "./bg-wolf.css";
 
 :root {
   --background: #09090b;
@@ -43,6 +41,7 @@ body {
 .site-bg__cover {
   position: absolute;
   inset: 0;
+  background-image: url("/bg-wojan-cover.webp");
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
@@ -51,24 +50,55 @@ body {
   transform: scale(1.04);
 }
 
+/* Wilk = depth seal, not flat stamp */
 .site-bg__wolf {
   position: absolute;
   inset: 0;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 92%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 92%);
+  background-image: url("/czarne-wilki-logotyp-bg.webp");
   background-size: min(90vw, 36rem) auto;
   background-position: center 18%;
   background-repeat: no-repeat;
   opacity: 0.24;
-  filter: blur(0.5px) saturate(0.85) brightness(0.7) contrast(1.08);
+  filter: blur(0.5px) saturate(0.85) brightness(0.7) contrast(1.08)
+    drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 40px rgba(217, 119, 6, 0.18));
   transform: scale(1.02);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 92%);
+}
+
+.site-bg__wolf::before {
+  content: "";
+  position: absolute;
+  inset: 10% 20% 35%;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(217, 119, 6, 0.22) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.site-bg__wolf::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 90% 80% at 50% 45%,
+    transparent 35%,
+    rgba(9, 9, 11, 0.55) 100%
+  );
+  pointer-events: none;
 }
 
 body[data-page="live"] .site-bg__wolf {
   opacity: 0.18;
-  background-position: center 8%;
+  background-position: center 6%;
   background-size: min(70vw, 28rem) auto;
-  filter: blur(0.5px) saturate(0.7) brightness(0.6) contrast(1.08);
+  filter: blur(0.5px) saturate(0.7) brightness(0.6) contrast(1.08)
+    drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 72%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 72%);
 }
 
 body[data-page="live"] .site-bg__cover {
