@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./bg-cover-vars.css";
+@import "./bg-wolf-vars.css";
 
 :root {
   --background: #09090b;
@@ -23,7 +25,6 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ---- Site atmosphere (fixed behind content) ---- */
 .site-bg {
   pointer-events: none;
   position: fixed;
@@ -41,7 +42,7 @@ body {
 .site-bg__cover {
   position: absolute;
   inset: 0;
-  background-image: url("/bg-wojan-cover.webp");
+  background-image: var(--bg-cover);
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
@@ -50,11 +51,10 @@ body {
   transform: scale(1.04);
 }
 
-/* Wilk = depth seal, not flat stamp */
 .site-bg__wolf {
   position: absolute;
   inset: 0;
-  background-image: url("/czarne-wilki-logotyp-bg.webp");
+  background-image: var(--bg-wolf);
   background-size: min(90vw, 36rem) auto;
   background-position: center 18%;
   background-repeat: no-repeat;
