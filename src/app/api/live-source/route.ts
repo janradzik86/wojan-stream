@@ -96,19 +96,10 @@ export async function GET() {
     // Temporary lookup error. Fall through to configured fallback/offline.
   }
 
-  const fallback = (process.env.NEXT_PUBLIC_LIVE_STREAM_URL ?? "").trim();
-  if (fallback) {
-    return NextResponse.json(
-      {
-        mode: "fallback",
-        url: fallback,
-        key: `fallback:${fallback}`,
-        liveVideoId: null,
-      },
-      { headers: { "Cache-Control": "no-store, max-age=0" } },
-    );
-  }
-
+  // Never fall back to an old manually configured video ID.
+  // If YouTube lookup is temporarily unavailable, the client keeps the last
+  // working source it already has. A fresh page shows the offline placeholder
+  // instead of resurrecting a deleted recording.
   return NextResponse.json(
     { mode: "offline", url: "", key: "offline", liveVideoId: null },
     { headers: { "Cache-Control": "no-store, max-age=0" } },
