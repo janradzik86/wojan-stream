@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEFAULT_HANDLE = "@CzarneWilkiPrawdy";
-const CHANNEL_ID_RE = /^UC[\w-]{22}$/;
+const CHANNEL_HANDLE = "@czarnewilkiprawdy";
 const VIDEO_ID_RE = /^[\w-]{11}$/;
 
 function videoIdFromUrl(raw: string): string | null {
@@ -15,40 +14,6 @@ function videoIdFromUrl(raw: string): string | null {
     const parts = u.pathname.split("/").filter(Boolean);
     if (parts[0] === "live" && parts[1] && VIDEO_ID_RE.test(parts[1])) return parts[1];
   } catch {}
-  return null;
-}
-
-function extractChannelId(html: string): string | null {
-  const patterns = [
-    /"channelId":"(UC[\w-]{22})"/,
-    /"externalId":"(UC[\w-]{22})"/,
-    /youtube\.com\/channel\/(UC[\w-]{22})/,
-  ];
-  for (const re of patterns) {
-    const m = html.match(re);
-    if (m?.[1]) return m[1];
-  }
-  return null;
-}
-
-function extractLiveVideoId(html: string, finalUrl: string): string | null {
-  const fromFinal = videoIdFromUrl(finalUrl);
-  if (fromFinal && /"isLiveNow":true|BADGE_STYLE_TYPE_LIVE_NOW|LIVE_NOW/i.test(html)) {
-    return fromFinal;
-  }
-
-  const canonical = html.match(
-    /<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})[^"']*["']/i,
-  );
-  if (canonical?.[1] && /"isLiveNow":true|BADGE_STYLE_TYPE_LIVE_NOW|LIVE_NOW/i.test(html)) {
-    return canonical[1];
-  }
-
-  const liveNow = html.match(
-    /"videoId":"([\w-]{11})"[\s\S]{0,1200}?"isLiveNow":true/,
-  );
-  if (liveNow?.[1]) return liveNow[1];
-
   return null;
 }
 
@@ -64,59 +29,71 @@ async function fetchText(url: string) {
   });
 }
 
-export async function GET() {
-  const configuredChannelId = (process.env.YOUTUBE_CHANNEL_ID ?? "").trim();
-  const handle = (process.env.YOUTUBE_CHANNEL_HANDLE ?? DEFAULT_HANDLE)
-    .trim()
-    .replace(/^https?:\/\/(www\.)?youtube\.com\//i, "")
-    .replace(/^\//, "");
+function extractCurrentLiveVideoId(html: string, finalUrl: string): string | null {
+  const finalId = videoIdFromUrl(finalUrl);
+  const liveMarker = /"isLiveNow":true|BADGE_STYLE_TYPE_LIVE_NOW|LIVE_NOW/i;
 
-  let channelId = CHANNEL_ID_RE.test(configuredChannelId)
-    ? configuredChannelId
-    : null;
-  let liveVideoId: string | null = null;
+  if (finalId && liveMarker.test(html)) return finalId;
+
+  const direct = html.match(
+    /"videoId":"([\w-]{11})"[\s\S]{0,1400}?"isLiveNow":true/,
+  );
+  if (direct?.[1]) return direct[1];
+
+  const reversed = html.match(
+    /"isLiveNow":true[\s\S]{0,1400}?"videoId":"([\w-]{11})"/,
+  );
+  if (reversed?.[1]) return reversed[1];
+
+  return null;
+}
+
+function extractNewestVideoId(html: string): string | null {
+  const ids = [...html.matchAll(/"videoId":"([\w-]{11})"/g)].map((m) => m[1]);
+  return ids[0] ?? null;
+}
+
+export async function GET() {
+  const channelLiveUrl = `https://www.youtube.com/${CHANNEL_HANDLE}/live`;
+  const channelVideosUrl = `https://www.youtube.com/${CHANNEL_HANDLE}/videos`;
 
   try {
-    const liveUrl = `https://www.youtube.com/${handle}/live`;
-    const liveResponse = await fetchText(liveUrl);
-    const html = await liveResponse.text();
+    const liveResponse = await fetchText(channelLiveUrl);
+    const liveHtml = await liveResponse.text();
+    const liveVideoId = extractCurrentLiveVideoId(liveHtml, liveResponse.url);
 
-    liveVideoId = extractLiveVideoId(html, liveResponse.url);
-    channelId = channelId ?? extractChannelId(html);
+    if (liveVideoId) {
+      return NextResponse.json(
+        {
+          mode: "youtube-live-video",
+          url: `https://www.youtube.com/embed/${liveVideoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`,
+          key: `live:${liveVideoId}`,
+          liveVideoId,
+        },
+        { headers: { "Cache-Control": "no-store, max-age=0" } },
+      );
+    }
 
-    if (!channelId) {
-      const channelResponse = await fetchText(`https://www.youtube.com/${handle}`);
-      const channelHtml = await channelResponse.text();
-      channelId = extractChannelId(channelHtml);
+    // No active live right now: keep the page useful by playing the newest
+    // available channel video/archived stream. As soon as a fresh live appears,
+    // the polling client will switch to it because the key changes to live:ID.
+    const videosResponse = await fetchText(channelVideosUrl);
+    const videosHtml = await videosResponse.text();
+    const newestVideoId = extractNewestVideoId(videosHtml);
+
+    if (newestVideoId) {
+      return NextResponse.json(
+        {
+          mode: "youtube-latest-video",
+          url: `https://www.youtube.com/embed/${newestVideoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`,
+          key: `latest:${newestVideoId}`,
+          liveVideoId: null,
+        },
+        { headers: { "Cache-Control": "no-store, max-age=0" } },
+      );
     }
   } catch {
-    // A temporary YouTube/network failure must not pin the app to an old video.
-  }
-
-  if (liveVideoId) {
-    return NextResponse.json(
-      {
-        mode: "youtube-live-video",
-        url: `https://www.youtube.com/embed/${liveVideoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`,
-        key: `video:${liveVideoId}`,
-        liveVideoId,
-        channelId,
-      },
-      { headers: { "Cache-Control": "no-store, max-age=0" } },
-    );
-  }
-
-  if (channelId) {
-    return NextResponse.json(
-      {
-        mode: "youtube-channel-live",
-        url: `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&playsinline=1&rel=0&modestbranding=1`,
-        key: `channel:${channelId}`,
-        liveVideoId: null,
-        channelId,
-      },
-      { headers: { "Cache-Control": "no-store, max-age=0" } },
-    );
+    // Temporary lookup error. Fall through to configured fallback/offline.
   }
 
   const fallback = (process.env.NEXT_PUBLIC_LIVE_STREAM_URL ?? "").trim();
@@ -127,14 +104,13 @@ export async function GET() {
         url: fallback,
         key: `fallback:${fallback}`,
         liveVideoId: null,
-        channelId: null,
       },
       { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   }
 
   return NextResponse.json(
-    { mode: "offline", url: "", key: "offline", liveVideoId: null, channelId: null },
+    { mode: "offline", url: "", key: "offline", liveVideoId: null },
     { headers: { "Cache-Control": "no-store, max-age=0" } },
   );
 }
