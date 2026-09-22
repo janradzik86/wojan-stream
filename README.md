@@ -15,14 +15,28 @@ Stack: Next.js App Router · TypeScript · Tailwind. No paywall, no auth, no cus
 
 ## Live URL
 
-Set env (or default in `next.config.ts` for active live):
+/live no longer pins the player to one old YouTube video ID.
+
+The page polls /api/live-source and resolves the current YouTube Live for the configured channel. When a fresh live appears, the player switches only when the source key changes, so normal playback is not remounted every poll.
+
+Configuration:
 
 ```bash
-NEXT_PUBLIC_LIVE_STREAM_URL=https://www.youtube.com/embed/wsNaZ67Rito
-# also: HLS .m3u8 / direct mp4 / OBS restream
+YOUTUBE_CHANNEL_HANDLE=@CzarneWilkiPrawdy
+# Best option when known:
+# YOUTUBE_CHANNEL_ID=UCxxxxxxxxxxxxxxxxxxxxxx
+
+# Optional non-YouTube/HLS fallback:
+# NEXT_PUBLIC_LIVE_STREAM_URL=https://example.com/live.m3u8
 ```
 
-Empty string → clear offline placeholder (PL). Supports laptop/OBS via that URL. YouTube Live/watch/embed supported in `LivePlayer`.
+Resolution order:
+1. current live video discovered from the channel /live page,
+2. channel-level YouTube live embed,
+3. explicit fallback URL,
+4. offline placeholder.
+
+The endpoint is no-store, so a deleted previous recording is not treated as the live source.
 
 ## Hits UGC v2
 
