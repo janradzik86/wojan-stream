@@ -48,10 +48,6 @@ function extractCurrentLiveVideoId(html: string, finalUrl: string): string | nul
   return null;
 }
 
-function extractNewestVideoId(html: string): string | null {
-  const ids = [...html.matchAll(/"videoId":"([\w-]{11})"/g)].map((m) => m[1]);
-  return ids[0] ?? null;
-}
 
 export async function GET() {
   const channelLiveUrl = `https://www.youtube.com/${CHANNEL_HANDLE}/live`;
@@ -73,25 +69,18 @@ export async function GET() {
         { headers: { "Cache-Control": "no-store, max-age=0" } },
       );
     }
-
-    // No active live right now: keep the page useful by playing the newest
-    // available channel video/archived stream. As soon as a fresh live appears,
-    // the polling client will switch to it because the key changes to live:ID.
-    const videosResponse = await fetchText(channelVideosUrl);
-    const videosHtml = await videosResponse.text();
-    const newestVideoId = extractNewestVideoId(videosHtml);
-
-    if (newestVideoId) {
-      return NextResponse.json(
-        {
-          mode: "youtube-latest-video",
-          url: `https://www.youtube.com/embed/${newestVideoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`,
-          key: `latest:${newestVideoId}`,
-          liveVideoId: null,
-        },
-        { headers: { "Cache-Control": "no-store, max-age=0" } },
-      );
-    }
+    // No active live right now. Do NOT fall back to ordinary channel videos.
+    // /live is strictly for live broadcasts; when there is no active stream,
+    // return offline and wait for the next broadcast.
+    return NextResponse.json(
+      {
+        mode: "offline",
+        url: "",
+        key: "offline",
+        liveVideoId: null,
+      },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch {
     // Temporary lookup error. Fall through to configured fallback/offline.
   }
