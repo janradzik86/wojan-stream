@@ -4,6 +4,7 @@ import {
   getLiveCtaLabels,
   getYouTubeEmbedUrl,
   isHlsUrl,
+  withYouTubePlayerParams,
 } from "@/lib/live";
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
@@ -64,7 +65,7 @@ export function LivePlayer({ url, fullBleed }: Props) {
               ? "h-full w-full flex-1 border-0 bg-black"
               : "aspect-video w-full border-0 bg-black"
           }
-          src={`${ytEmbed}?autoplay=1&playsinline=1&rel=0&modestbranding=1`}
+          src={withYouTubePlayerParams(ytEmbed)}
           title="Wojan live"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen

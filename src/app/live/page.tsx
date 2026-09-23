@@ -48,12 +48,21 @@ export default function LivePage() {
 
       <footer className="border-t border-zinc-800 px-3 py-3 text-center sm:px-4">
         <p className="break-all text-xs text-zinc-500">
-          Stream:{" "}
+          Auto-live z{" "}
+          <a
+            className="text-amber-400/90 hover:text-amber-300"
+            href="https://www.youtube.com/@czarnewilkiprawdy"
+            target="_blank"
+            rel="noreferrer"
+          >
+            youtube.com/@czarnewilkiprawdy
+          </a>
+          {" · "}
           <a
             className="text-amber-400/90 hover:text-amber-300"
             href="https://wojan-stream.vercel.app/live"
           >
-            https://wojan-stream.vercel.app/live
+            wojan-stream.vercel.app/live
           </a>
         </p>
       </footer>
