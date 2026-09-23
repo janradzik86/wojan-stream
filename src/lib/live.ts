@@ -4,11 +4,14 @@ export function getLiveStreamUrl(): string {
   return (process.env.NEXT_PUBLIC_LIVE_STREAM_URL ?? "").trim();
 }
 
+/** True for HLS playlists — these must never use the YouTube embed path. */
 export function isHlsUrl(url: string): boolean {
   return /\.m3u8(\?|$)/i.test(url);
 }
 
-/** youtube.com/watch, /live/, /embed/, youtu.be */
+/**
+ * youtube.com/watch, /live/, /embed/, youtu.be, embed/live_stream?channel=
+ */
 export function getYouTubeEmbedUrl(url: string): string | null {
   try {
     const u = new URL(url);
@@ -23,7 +26,7 @@ export function getYouTubeEmbedUrl(url: string): string | null {
       host === "youtube-nocookie.com"
     ) {
       if (u.pathname.startsWith("/embed/")) {
-        return `https://www.youtube.com${u.pathname}`;
+        return `https://www.youtube.com${u.pathname}${u.search}`;
       }
       const live = u.pathname.match(/^\/live\/([^/?]+)/);
       if (live?.[1]) return `https://www.youtube.com/embed/${live[1]}`;
@@ -38,6 +41,21 @@ export function getYouTubeEmbedUrl(url: string): string | null {
 
 export function isYouTubeUrl(url: string): boolean {
   return getYouTubeEmbedUrl(url) !== null;
+}
+
+/** Merge autoplay params without dropping channel= on live_stream embeds. */
+export function withYouTubePlayerParams(embedUrl: string): string {
+  try {
+    const u = new URL(embedUrl);
+    u.searchParams.set("autoplay", "1");
+    u.searchParams.set("playsinline", "1");
+    u.searchParams.set("rel", "0");
+    u.searchParams.set("modestbranding", "1");
+    return u.toString();
+  } catch {
+    const join = embedUrl.includes("?") ? "&" : "?";
+    return `${embedUrl}${join}autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+  }
 }
 
 /** Offline Social tagline (wilki) — user-facing only, no stream-tech jargon */
