@@ -3,10 +3,11 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-/** User channel: https://youtube.com/@czarnewilkiprawdy */
-const CHANNEL_HANDLE = "@czarnewilkiprawdy";
-const CHANNEL_ID = "UCkqXUdBeXbc52f__qDcNCaQ";
+const CHANNEL_HANDLE = (process.env.YOUTUBE_CHANNEL_HANDLE || "@czarnewilkiprawdy").trim();
+const CONFIG_CHANNEL_ID = (process.env.YOUTUBE_CHANNEL_ID || "").trim();
+const FALLBACK_STREAM_URL = (process.env.NEXT_PUBLIC_LIVE_STREAM_URL || "").trim();
 const VIDEO_ID_RE = /^[\w-]{11}$/;
+const CHANNEL_ID_RE = /^UC[\w-]{22}$/;
 
 function videoIdFromUrl(raw: string): string | null {
   try {
@@ -14,8 +15,10 @@ function videoIdFromUrl(raw: string): string | null {
     const v = u.searchParams.get("v");
     if (v && VIDEO_ID_RE.test(v)) return v;
     const parts = u.pathname.split("/").filter(Boolean);
-    if (parts[0] === "live" && parts[1] && VIDEO_ID_RE.test(parts[1])) {
-      return parts[1];
+    if (parts[0] === "live" && parts[1] && VIDEO_ID_RE.test(parts[1])) return parts[1];
+    if (parts[0] === "watch") {
+      const watchId = u.searchParams.get("v");
+      if (watchId && VIDEO_ID_RE.test(watchId)) return watchId;
     }
   } catch {
     /* ignore */
@@ -29,75 +32,135 @@ async function fetchText(url: string) {
     redirect: "follow",
     headers: {
       "user-agent":
-        "Mozilla/5.0 (compatible; WojanLive/1.0; +https://wojan-stream.vercel.app)",
-      "accept-language": "pl,en;q=0.8",
+        "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126 Safari/537.36 WojanLive/2.0",
+      "accept-language": "pl-PL,pl;q=0.9,en;q=0.7",
     },
   });
 }
 
 function extractCurrentLiveVideoId(html: string, finalUrl: string): string | null {
   const finalId = videoIdFromUrl(finalUrl);
-  const liveMarker = /"isLiveNow":true|BADGE_STYLE_TYPE_LIVE_NOW|LIVE_NOW/i;
+  const liveMarker =
+    /"isLiveNow":true|BADGE_STYLE_TYPE_LIVE_NOW|"style":"LIVE"|"label":"LIVE"|LIVE_NOW/i;
 
   if (finalId && liveMarker.test(html)) return finalId;
 
-  const direct = html.match(
-    /"videoId":"([\w-]{11})"[\s\S]{0,1400}?"isLiveNow":true/,
-  );
-  if (direct?.[1]) return direct[1];
+  const patterns = [
+    /"videoId":"([\w-]{11})"[\s\S]{0,4000}?"isLiveNow":true/,
+    /"isLiveNow":true[\s\S]{0,4000}?"videoId":"([\w-]{11})"/,
+    /"videoId":"([\w-]{11})"[\s\S]{0,4000}?BADGE_STYLE_TYPE_LIVE_NOW/,
+    /BADGE_STYLE_TYPE_LIVE_NOW[\s\S]{0,4000}?"videoId":"([\w-]{11})"/,
+    /"canonicalBaseUrl":"\/live\/([\w-]{11})"/,
+  ];
 
-  const reversed = html.match(
-    /"isLiveNow":true[\s\S]{0,1400}?"videoId":"([\w-]{11})"/,
-  );
-  if (reversed?.[1]) return reversed[1];
+  for (const re of patterns) {
+    const m = html.match(re);
+    if (m?.[1] && VIDEO_ID_RE.test(m[1])) return m[1];
+  }
 
   return null;
 }
 
-function channelLiveEmbed() {
-  return {
-    mode: "youtube-channel-live" as const,
-    url: `https://www.youtube.com/embed/live_stream?channel=${CHANNEL_ID}`,
-    key: `channel-live:${CHANNEL_ID}`,
+function extractChannelId(html: string): string | null {
+  const patterns = [
+    /"channelId":"(UC[\w-]{22})"/,
+    /"externalId":"(UC[\w-]{22})"/,
+    /"browseId":"(UC[\w-]{22})"/,
+    /itemprop="channelId"\s+content="(UC[\w-]{22})"/,
+    /youtube\.com\/channel\/(UC[\w-]{22})/,
+  ];
+  for (const re of patterns) {
+    const m = html.match(re);
+    if (m?.[1] && CHANNEL_ID_RE.test(m[1])) return m[1];
+  }
+  return null;
+}
+
+function response(body: Record<string, unknown>) {
+  return NextResponse.json(body, {
+    headers: { "Cache-Control": "no-store, max-age=0" },
+  });
+}
+
+function channelEmbed(channelId: string, resolvedFrom: string) {
+  return response({
+    mode: "youtube-channel-live",
+    url: `https://www.youtube.com/embed/live_stream?channel=${channelId}`,
+    key: `channel-live:${channelId}`,
     liveVideoId: null,
-    channelId: CHANNEL_ID,
+    channelId,
     channelHandle: CHANNEL_HANDLE,
     channelUrl: `https://www.youtube.com/${CHANNEL_HANDLE}`,
-  };
+    resolvedFrom,
+  });
 }
 
 export async function GET() {
-  const channelLiveUrl = `https://www.youtube.com/${CHANNEL_HANDLE}/live`;
+  const channelUrl = `https://www.youtube.com/${CHANNEL_HANDLE}`;
+  const channelLiveUrl = `${channelUrl}/live`;
+
+  let liveHtml = "";
+  let finalLiveUrl = channelLiveUrl;
 
   try {
     const liveResponse = await fetchText(channelLiveUrl);
-    const liveHtml = await liveResponse.text();
-    const liveVideoId = extractCurrentLiveVideoId(liveHtml, liveResponse.url);
+    finalLiveUrl = liveResponse.url || channelLiveUrl;
+    liveHtml = await liveResponse.text();
 
+    const liveVideoId = extractCurrentLiveVideoId(liveHtml, finalLiveUrl);
     if (liveVideoId) {
-      return NextResponse.json(
-        {
-          mode: "youtube-live-video",
-          url: `https://www.youtube.com/watch?v=${liveVideoId}`,
-          key: `live:${liveVideoId}`,
-          liveVideoId,
-          channelId: CHANNEL_ID,
-          channelHandle: CHANNEL_HANDLE,
-          channelUrl: `https://www.youtube.com/${CHANNEL_HANDLE}`,
-        },
-        { headers: { "Cache-Control": "no-store, max-age=0" } },
-      );
+      return response({
+        mode: "youtube-live-video",
+        url: `https://www.youtube.com/watch?v=${liveVideoId}`,
+        key: `live:${liveVideoId}`,
+        liveVideoId,
+        channelId: CONFIG_CHANNEL_ID || extractChannelId(liveHtml),
+        channelHandle: CHANNEL_HANDLE,
+        channelUrl,
+        resolvedFrom: "live-page",
+      });
     }
-
-    // No confirmed live video id — still bind the channel live embed so a
-    // newly started stream appears without waiting for scrape to catch up.
-    return NextResponse.json(channelLiveEmbed(), {
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    });
   } catch {
-    // YouTube scrape blocked / network blip — channel embed still tracks live.
-    return NextResponse.json(channelLiveEmbed(), {
-      headers: { "Cache-Control": "no-store, max-age=0" },
+    // Continue with channel-id resolution and explicit fallback.
+  }
+
+  if (CONFIG_CHANNEL_ID && CHANNEL_ID_RE.test(CONFIG_CHANNEL_ID)) {
+    return channelEmbed(CONFIG_CHANNEL_ID, "env");
+  }
+
+  const idFromLivePage = extractChannelId(liveHtml);
+  if (idFromLivePage) return channelEmbed(idFromLivePage, "live-page-html");
+
+  try {
+    const channelResponse = await fetchText(channelUrl);
+    const channelHtml = await channelResponse.text();
+    const resolvedChannelId = extractChannelId(channelHtml);
+    if (resolvedChannelId) return channelEmbed(resolvedChannelId, "channel-page-html");
+  } catch {
+    // Continue to explicit fallback / offline state.
+  }
+
+  if (FALLBACK_STREAM_URL) {
+    return response({
+      mode: "fallback",
+      url: FALLBACK_STREAM_URL,
+      key: `fallback:${FALLBACK_STREAM_URL}`,
+      liveVideoId: null,
+      channelId: null,
+      channelHandle: CHANNEL_HANDLE,
+      channelUrl,
+      resolvedFrom: "env-fallback",
     });
   }
+
+  return response({
+    mode: "offline",
+    url: "",
+    key: "offline",
+    liveVideoId: null,
+    channelId: null,
+    channelHandle: CHANNEL_HANDLE,
+    channelUrl,
+    resolvedFrom: "none",
+  });
 }
