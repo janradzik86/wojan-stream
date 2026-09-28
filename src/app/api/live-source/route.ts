@@ -78,7 +78,11 @@ function extractChannelId(html: string): string | null {
 
 function response(body: Record<string, unknown>) {
   return NextResponse.json(body, {
-    headers: {\n      "Cache-Control": "no-store, max-age=0",\n      "Access-Control-Allow-Origin": "*",\n      "Access-Control-Allow-Methods": "GET, OPTIONS",\n    },
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+    },
   });
 }
 
@@ -164,4 +168,14 @@ export async function GET() {
     resolvedFrom: "none",
   });
 }
-\nexport async function OPTIONS() {\n  return new NextResponse(null, {\n    status: 204,\n    headers: {\n      "Access-Control-Allow-Origin": "*",\n      "Access-Control-Allow-Methods": "GET, OPTIONS",\n      "Access-Control-Allow-Headers": "Content-Type",\n    },\n  });\n}\n
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
+}
